@@ -1,0 +1,716 @@
+---
+swagger: "2.0"
+info:
+  description: "This API allows users to create, edit and participate in events."
+  version: "1.0.0"
+  title: "REST-Event API"
+  contact:
+    email: "you@your-company.com"
+  license:
+    name: "MIT"
+    url: "https://opensource.org/licenses/MIT"
+basePath: "/v1"
+tags:
+- name: "member"
+  description: "Operation about members"
+- name: "image"
+  description: "Operation about images"
+- name: "event"
+  description: "Everything about events"
+schemes:
+- "http"
+paths:
+  /member:
+    get:
+      tags:
+      - "member"
+      summary: "Get memberList"
+      description: "Returns a list of reduced Member objects"
+      operationId: "get_member_list"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/MemberList"
+      x-swagger-router-controller: "swagger_server.controllers.member_controller"
+    post:
+      tags:
+      - "member"
+      summary: "Create member"
+      description: "This creates a new Member"
+      operationId: "create_member"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Created member object"
+        required: true
+        schema:
+          $ref: "#/definitions/Member_Create"
+      responses:
+        201:
+          description: "Created\\nReturns the created Member object"
+          schema:
+            $ref: "#/definitions/Member_Private"
+        400:
+          description: "Bad Request\\nThe request couldnt be proceeded"
+          schema:
+            $ref: "#/definitions/Error"
+        409:
+          description: "Confilct\\nThis Request isn't possible."
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.member_controller"
+  /member/{username}/private:
+    get:
+      tags:
+      - "member"
+      summary: "Get private member information by member name"
+      description: "This can only be done by the logged in member."
+      operationId: "get_member_by_name_private"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "path"
+        description: "The name that needs to be fetched."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK\nReturns the updated Member\n"
+          schema:
+            $ref: "#/definitions/Member_Private"
+        400:
+          description: "Invalid Member supplied"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Member not found"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.member_controller"
+  /member/{username}:
+    get:
+      tags:
+      - "member"
+      summary: "Get public member information by member name"
+      description: "Returns public Member information"
+      operationId: "get_member_by_name"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "path"
+        description: "The name that needs to be fetched."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK\nReturns the requested Member\n"
+          schema:
+            $ref: "#/definitions/Member_Public"
+        400:
+          description: "Invalid username supplied"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Member not found"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.member_controller"
+    put:
+      tags:
+      - "member"
+      summary: "Updated member"
+      description: "This can only be done by the logged in member."
+      operationId: "update_member"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "path"
+        description: "name that need to be updated"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Update member object"
+        required: true
+        schema:
+          $ref: "#/definitions/Member_Update"
+      responses:
+        200:
+          description: "OK\nReturns the updated Member\n"
+          schema:
+            $ref: "#/definitions/Member_Private"
+        400:
+          description: "Invalid Member supplied"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Member not found"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.member_controller"
+    delete:
+      tags:
+      - "member"
+      summary: "Delete member"
+      description: "This can only be done by the logged in member.\nAttention! All\
+        \ information, events and pictures associated with this member will be deleted!\n"
+      operationId: "delete_member"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "username"
+        in: "path"
+        description: "The name that needs to be deleted"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Success"
+        404:
+          description: "Member not found"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.member_controller"
+  /event:
+    get:
+      tags:
+      - "event"
+      summary: "Get eventList"
+      description: "Returns a list of reduced Event objects"
+      operationId: "get_event_list"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "start_id"
+        in: "query"
+        description: "Member_id the list starts with"
+        required: false
+        type: "integer"
+      - name: "end_id"
+        in: "query"
+        description: "Member_id the list ends with"
+        required: false
+        type: "integer"
+      - name: "start_date"
+        in: "query"
+        description: "Member_Date the list starts with"
+        required: false
+        type: "string"
+        format: "date-time"
+      - name: "end_date"
+        in: "query"
+        description: "Member_Date the list ends with"
+        required: false
+        type: "string"
+        format: "date-time"
+      - name: "max_items"
+        in: "query"
+        description: "max items count in the list"
+        required: false
+        type: "integer"
+      responses:
+        200:
+          description: "Returns a list of events"
+        400:
+          description: "Bad Request\\nThe request couldnt be proceeded"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.event_controller"
+    post:
+      tags:
+      - "event"
+      summary: "Create event"
+      description: "This can only be done by the logged in member."
+      operationId: "create_event"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Created event object"
+        required: true
+        schema:
+          $ref: "#/definitions/Event_Request"
+      responses:
+        201:
+          description: "Created\nReturns the created Event object\n"
+          schema:
+            $ref: "#/definitions/Event"
+        400:
+          description: "Bad Request\nThe request couldnt be proceeded\n"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.event_controller"
+  /event/{event_id}:
+    get:
+      tags:
+      - "event"
+      summary: "Get event by event_id"
+      description: "Returns a full Event object"
+      operationId: "get_event_by_id"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "event_id"
+        in: "path"
+        description: "The name that needs to be fetched."
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Event"
+        400:
+          description: "Invalid event_id supplied"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Event not found"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.event_controller"
+    put:
+      tags:
+      - "event"
+      summary: "Updated event"
+      description: "This can only be done by the logged in member."
+      operationId: "update_event"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "event_id"
+        in: "path"
+        description: "name that need to be updated"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        description: "Updated event object"
+        required: true
+        schema:
+          $ref: "#/definitions/Event_Request"
+      responses:
+        200:
+          description: "OK\nReturns the updated Event object\n"
+          schema:
+            $ref: "#/definitions/Event"
+        400:
+          description: "Invalid event_id supplied"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Event not found"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.event_controller"
+    delete:
+      tags:
+      - "event"
+      summary: "Delete event"
+      description: "This can only be done by the logged in member."
+      operationId: "delete_event"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "event_id"
+        in: "path"
+        description: "The name that needs to be deleted"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Success"
+        400:
+          description: "Invalid event_id supplied"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Event not found"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.event_controller"
+  /event/{event_id}/attend/{state}:
+    put:
+      tags:
+      - "event"
+      summary: "change attendence to a event"
+      description: "This can only be done by the logged in member."
+      operationId: "attend_event"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "event_id"
+        in: "path"
+        description: "The Event ID"
+        required: true
+        type: "integer"
+      - name: "state"
+        in: "path"
+        description: "The status"
+        required: true
+        type: "boolean"
+      responses:
+        200:
+          description: "OK"
+          schema:
+            $ref: "#/definitions/Success"
+        400:
+          description: "Invalid event_id supplied"
+          schema:
+            $ref: "#/definitions/Error"
+        404:
+          description: "Event not found"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.event_controller"
+  /image/upload:
+    post:
+      tags:
+      - "image"
+      summary: "Uploads a file."
+      operationId: "image_upload_post"
+      consumes:
+      - "multipart/form-data"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "image"
+        in: "formData"
+        description: "The file to upload."
+        required: true
+        type: "file"
+      - name: "description"
+        in: "formData"
+        description: "Description of the Image."
+        required: false
+        type: "string"
+      responses:
+        200:
+          description: "OK\nSuccessfully uploaded\n"
+          schema:
+            $ref: "#/definitions/Image"
+        413:
+          description: "Request Entity Too Large"
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: "Error importing file"
+          schema:
+            $ref: "#/definitions/Error"
+      security:
+      - basicAuth: []
+      x-swagger-router-controller: "swagger_server.controllers.image_controller"
+  /image/{uuid}:
+    get:
+      tags:
+      - "image"
+      summary: "Returns a image."
+      operationId: "image_uuid_get"
+      produces:
+      - "application/json"
+      - "image/png"
+      - "image/jpg"
+      parameters:
+      - name: "uuid"
+        in: "path"
+        description: "Returns an Image"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "OK"
+        404:
+          description: "Image not found"
+          schema:
+            $ref: "#/definitions/Error"
+      x-swagger-router-controller: "swagger_server.controllers.image_controller"
+securityDefinitions:
+  basicAuth:
+    type: "basic"
+definitions:
+  Success:
+    type: "object"
+    properties:
+      success:
+        type: "boolean"
+      description:
+        type: "string"
+    example:
+      success: true
+      description: "description"
+  Error:
+    type: "object"
+    properties:
+      tite:
+        type: "string"
+        example: "Bad Request"
+      status:
+        type: "integer"
+        example: 400
+      detail:
+        type: "string"
+        example: "Date: Dates not valid; Is the start_date earlier than the end_date?"
+      type:
+        type: "string"
+        example: "Parsing"
+  MemberList:
+    type: "object"
+    properties:
+      member_list:
+        type: "array"
+        items:
+          $ref: "#/definitions/Member_Public"
+    example:
+      member_list:
+      - name: "name"
+        description: "description"
+        id: 0
+        username: "username"
+      - name: "name"
+        description: "description"
+        id: 0
+        username: "username"
+  Member_Create:
+    type: "object"
+    properties:
+      username:
+        type: "string"
+      name:
+        type: "string"
+      email:
+        type: "string"
+        format: "email"
+        example: "email@example.com"
+      password:
+        type: "string"
+      description:
+        type: "string"
+  Member_Update:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      email:
+        type: "string"
+        format: "email"
+        example: "email@example.com"
+      password:
+        type: "string"
+      description:
+        type: "string"
+  Member_Public:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+      description:
+        type: "string"
+      username:
+        type: "string"
+    example:
+      name: "name"
+      description: "description"
+      id: 0
+      username: "username"
+  Member_Private:
+    type: "object"
+    properties:
+      id:
+        type: "integer"
+      name:
+        type: "string"
+      email:
+        type: "string"
+        format: "email"
+      description:
+        type: "string"
+      images:
+        type: "array"
+        items:
+          $ref: "#/definitions/Image"
+      username:
+        type: "string"
+    example:
+      images:
+      - description: "An image."
+        id: 1
+        uuid: "79a473d0-4d8d-11e8-b28c-0242ac110003"
+        url: "/v1/image/79a473d0-4d8d-11e8-b28c-0242ac110003"
+      - description: "An image."
+        id: 1
+        uuid: "79a473d0-4d8d-11e8-b28c-0242ac110003"
+        url: "/v1/image/79a473d0-4d8d-11e8-b28c-0242ac110003"
+      name: "name"
+      description: "description"
+      id: 0
+      email: "email"
+      username: "username"
+  Event:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      location:
+        $ref: "#/definitions/Location"
+      startDatetime:
+        type: "string"
+        format: "date-time"
+      endDatetime:
+        type: "string"
+        format: "date-time"
+      description:
+        type: "string"
+      images:
+        type: "array"
+        items:
+          $ref: "#/definitions/Image"
+      ageFrom:
+        type: "integer"
+        example: 10
+      ageTo:
+        type: "integer"
+        example: 40
+    example:
+      startDatetime: "2000-01-23T04:56:07.000+00:00"
+      images:
+      - description: "An image."
+        id: 1
+        uuid: "79a473d0-4d8d-11e8-b28c-0242ac110003"
+        url: "/v1/image/79a473d0-4d8d-11e8-b28c-0242ac110003"
+      - description: "An image."
+        id: 1
+        uuid: "79a473d0-4d8d-11e8-b28c-0242ac110003"
+        url: "/v1/image/79a473d0-4d8d-11e8-b28c-0242ac110003"
+      name: "name"
+      description: "description"
+      ageFrom: 10
+      location:
+        address:
+          zip: "zip"
+          city: "city"
+          street: "street"
+          name: "name"
+          state: "state"
+        latitude: 6.02745618307040320615897144307382404804229736328125
+        name: "name"
+        longitude: 0.80082819046101150206595775671303272247314453125
+      ageTo: 40
+      endDatetime: "2000-01-23T04:56:07.000+00:00"
+  Event_Request:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      location:
+        $ref: "#/definitions/Location"
+      startDatetime:
+        type: "string"
+        format: "date-time"
+      endDatetime:
+        type: "string"
+        format: "date-time"
+      description:
+        type: "string"
+      images:
+        type: "array"
+        items:
+          type: "string"
+          format: "uuid"
+          example: "79a473d0-4d8d-11e8-b28c-0242ac110003"
+      ageFrom:
+        type: "integer"
+        example: 10
+      ageTo:
+        type: "integer"
+        example: 40
+  Address:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      street:
+        type: "string"
+      city:
+        type: "string"
+      state:
+        type: "string"
+      zip:
+        type: "string"
+    example:
+      zip: "zip"
+      city: "city"
+      street: "street"
+      name: "name"
+      state: "state"
+  Location:
+    type: "object"
+    properties:
+      address:
+        $ref: "#/definitions/Address"
+      name:
+        type: "string"
+      longitude:
+        type: "number"
+      latitude:
+        type: "number"
+    example:
+      address:
+        zip: "zip"
+        city: "city"
+        street: "street"
+        name: "name"
+        state: "state"
+      latitude: 6.02745618307040320615897144307382404804229736328125
+      name: "name"
+      longitude: 0.80082819046101150206595775671303272247314453125
+  Image:
+    type: "object"
+    properties:
+      description:
+        type: "string"
+        example: "An image."
+      id:
+        type: "integer"
+        example: 1
+      url:
+        type: "string"
+        example: "/v1/image/79a473d0-4d8d-11e8-b28c-0242ac110003"
+      uuid:
+        type: "string"
+        example: "79a473d0-4d8d-11e8-b28c-0242ac110003"
+    example:
+      description: "An image."
+      id: 1
+      uuid: "79a473d0-4d8d-11e8-b28c-0242ac110003"
+      url: "/v1/image/79a473d0-4d8d-11e8-b28c-0242ac110003"

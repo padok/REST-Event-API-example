@@ -1,0 +1,670 @@
+swagger: '2.0'
+info:
+  description: This API allows users to create, edit and participate in events.
+  version: 1.0.0
+  title: REST-Event API
+
+  contact:
+    email: you@your-company.com
+
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+#host: 0.0.0.0
+basePath: /v1
+tags:
+- name: member
+  description: Operation about members
+- name: image
+  description: Operation about images
+- name: event
+  description: Everything about events
+schemes:
+- http
+paths:
+# MEMBERS///////////////////////////////////////////////////////
+  /member:
+# Creat a new member
+    post:
+      tags:
+      - member
+      summary: Create member
+      description: This creates a new Member
+      operationId: createMember
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        required: true
+        description: Created member object
+        schema:
+          $ref: '#/definitions/Member_Create'
+      responses:
+        201:
+          description: Created\nReturns the created Member object
+          schema:
+            $ref: '#/definitions/Member_Private'
+        400:
+          description: Bad Request\nThe request couldnt be proceeded
+          schema:
+            $ref: '#/definitions/Error'
+        409:
+          description: Confilct\nThis Request isn't possible.
+          schema:
+            $ref: '#/definitions/Error'
+
+# Get an member list
+    get:
+      tags:
+      - member
+      summary: Get memberList
+      description: Returns a list of reduced Member objects
+      operationId: getMemberList
+      produces:
+      - application/json
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/MemberList'
+
+  /member/{username}/private:
+  # Get user-private by member name
+    get:
+      tags:
+      - member
+      summary: Get private member information by member name
+      description: This can only be done by the logged in member.
+      operationId: getMemberByNamePrivate
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: The name that needs to be fetched.
+        required: true
+        type: string
+      responses:
+        200:
+          description: |
+            OK
+            Returns the updated Member
+          schema:
+            $ref: '#/definitions/Member_Private'
+        400:
+          description: Invalid Member supplied
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Member not found
+          schema:
+            $ref: '#/definitions/Error'
+
+  /member/{username}:
+# Get member by member name
+    get:
+      tags:
+      - member
+      summary: Get public member information by member name
+      description: Returns public Member information 
+      operationId: getMemberByName
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: The name that needs to be fetched.
+        required: true
+        type: string
+      responses:
+        200:
+          description: |
+            OK
+            Returns the requested Member
+          schema:
+            $ref: '#/definitions/Member_Public'
+        400:
+          description: Invalid username supplied
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Member not found
+          schema:
+            $ref: '#/definitions/Error'
+
+# Update member
+    put:
+      tags:
+      - member
+      summary: Updated member
+      description: This can only be done by the logged in member.
+      operationId: updateMember
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: name that need to be updated
+        required: true
+        type: string
+      - in: body
+        name: body
+        required: true
+        description: Update member object
+        schema:
+          $ref: '#/definitions/Member_Update'
+      responses:
+        200:
+          description: |
+            OK
+            Returns the updated Member
+          schema:
+            $ref: '#/definitions/Member_Private'
+        400:
+          description: Invalid Member supplied
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Member not found
+          schema:
+            $ref: '#/definitions/Error'
+# Delete a member
+    delete:
+      tags:
+      - member
+      summary: Delete member
+      description: |
+        This can only be done by the logged in member.
+        Attention! All information, events and pictures associated with this member will be deleted!
+      operationId: deleteMember
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: username
+        in: path
+        description: The name that needs to be deleted
+        required: true
+        type: string
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Success'
+        404:
+          description: Member not found
+          schema:
+            $ref: '#/definitions/Error'
+  
+# EVENT /////////////////////////////////////////////////////////////
+  /event:
+# Create an event
+    post:
+      tags:
+      - event
+      summary: Create event
+      description: This can only be done by the logged in member.
+      operationId: createEvent
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        description: Created event object
+        required: true
+        schema:
+          $ref: '#/definitions/Event_Request'
+      responses:
+        201:
+          description: |
+            Created
+            Returns the created Event object
+          schema:
+            $ref: '#/definitions/Event'
+        400:
+          description: |
+            Bad Request
+            The request couldnt be proceeded
+          schema:
+            $ref: '#/definitions/Error'
+          
+
+# Get an event list
+    get:
+      tags:
+      - event
+      summary: Get eventList
+      description: Returns a list of reduced Event objects
+      operationId: getEventList
+      produces:
+      - application/json
+      parameters:
+      - in: query
+        name: start_id
+        description: Member_id the list starts with
+        required: false
+        type: integer
+      - in: query
+        name: end_id
+        description: Member_id the list ends with
+        required: false
+        type: integer
+      - in: query
+        name: start_date
+        description: Member_Date the list starts with
+        required: false
+        type: string
+        format: date-time
+      - in: query
+        name: end_date
+        description: Member_Date the list ends with
+        required: false
+        type: string
+        format: date-time
+      - in: query
+        name: max_items
+        description: max items count in the list
+        required: false
+        type: integer                
+      responses:
+        200:
+          description: Returns a list of events
+          # schema:
+          #   $ref: '#/definitions/EventList'
+        400:
+          description: Bad Request\nThe request couldnt be proceeded
+          schema:
+            $ref: '#/definitions/Error'
+
+  /event/{event_id}:
+# Get an event
+    get:
+      tags:
+      - event
+      summary: Get event by event_id
+      description: Returns a full Event object
+      operationId: getEventByID
+      produces:
+      - application/json
+      parameters:
+      - name: event_id
+        in: path
+        description: The name that needs to be fetched.
+        required: true
+        type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Event'
+        400:
+          description: Invalid event_id supplied
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Event not found
+          schema:
+            $ref: '#/definitions/Error'
+
+    put:
+# Update event using event name
+      tags:
+      - event
+      summary: Updated event
+      description: This can only be done by the logged in member.
+      operationId: updateEvent
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: event_id
+        in: path
+        description: name that need to be updated
+        required: true
+        type: integer
+      - in: body
+        name: body
+        description: Updated event object
+        required: true
+        schema:
+          $ref: '#/definitions/Event_Request'
+      responses:
+        200:
+          description: |
+            OK
+            Returns the updated Event object
+          schema:
+            $ref: '#/definitions/Event'
+        400:
+          description: Invalid event_id supplied
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Event not found
+          schema:
+            $ref: '#/definitions/Error'
+
+    delete:
+# delete event using event name
+      tags:
+      - event
+      summary: Delete event
+      description: This can only be done by the logged in member.
+      operationId: deleteEvent
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: event_id
+        in: path
+        description: The name that needs to be deleted
+        required: true
+        type: integer
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Success'
+        400:
+          description: Invalid event_id supplied
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Event not found
+          schema:
+            $ref: '#/definitions/Error'
+
+  /event/{event_id}/attend/{state}:
+    put:
+      tags:
+      - event
+      summary: change attendence to a event
+      description: This can only be done by the logged in member.
+      operationId: attendEvent
+      security:
+      - basicAuth: []
+      produces:
+      - application/json
+      parameters:
+      - name: event_id
+        in: path
+        description: The Event ID
+        required: true
+        type: integer
+      - name: state
+        in: path
+        description: The status
+        required: true
+        type: boolean
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/Success'
+        400:
+          description: Invalid event_id supplied
+          schema:
+            $ref: '#/definitions/Error'
+        404:
+          description: Event not found
+          schema:
+            $ref: '#/definitions/Error'
+
+# IMAGE /////////////////////////////////////////////////////////////
+  /image/upload:
+    post:
+      tags:
+      - image
+      summary: Uploads a file.
+      operationId: imageUploadPost
+      security:
+      - basicAuth: []
+      consumes:
+      - multipart/form-data
+      produces:
+      - application/json
+      parameters:
+      - name: image
+        in: formData
+        required: true
+        type: file
+        description: The file to upload.
+      - name: description
+        in: formData
+        required: false
+        type: string
+        description: Description of the Image.
+      responses:
+        200:
+          description: |
+            OK
+            Successfully uploaded
+          schema:
+            $ref: '#/definitions/Image'
+        413:
+          description: Request Entity Too Large
+          schema:
+            $ref: '#/definitions/Error'
+        500:
+          description: Error importing file
+          schema:
+            $ref: '#/definitions/Error'
+
+  /image/{uuid}:
+    get:
+      tags:
+        - image
+      summary: Returns a image.
+      operationId: imageUuidGet
+      parameters:
+      - name: uuid
+        in: path
+        description: Returns an Image
+        required: true
+        type: string
+      produces:
+        - application/json
+        - image/png
+        - image/jpg
+      responses:
+        200:      # Response
+          description: OK
+        404:
+          description: Image not found
+          schema:
+            $ref: '#/definitions/Error'
+
+# definitions /////////////////////////////////////////////////////////////      
+definitions:
+  Success:
+    type: object
+    properties:
+      success:
+        type: boolean
+      description:
+        type: string
+  Error:
+    type: object
+    properties:
+      tite:
+        type: string
+        example: Bad Request
+      status:
+        type: integer
+        example: 400        
+      detail:
+        type: string
+        example: 'Date: Dates not valid; Is the start_date earlier than the end_date?'
+      type:
+        type: string
+        example: Parsing
+  MemberList:
+    type: object
+    properties:
+      member_list:
+        type: array
+        items:
+          $ref: '#/definitions/Member_Public'
+  Member_Create:
+    type: object
+    properties:
+      username:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+        format: email
+        example: email@example.com        
+      password:
+        type: string
+      description: 
+        type: string
+  Member_Update:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+        format: email
+        example: email@example.com   
+      password:
+        type: string
+      description: 
+        type: string
+  Member_Public:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      description: 
+        type: string
+      username:
+        type: string
+  Member_Private:
+    type: object
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      email:
+        type: string
+        format: email
+      description: 
+        type: string
+      images:
+        type: array
+        items:
+          $ref: '#/definitions/Image'
+      username:
+        type: string
+  Event:
+    type: object
+    properties:
+      name:
+        type: string
+      location:
+        $ref: '#/definitions/Location'
+      startDatetime: 
+        type: string
+        format: date-time
+      endDatetime:
+        type: string
+        format: date-time       
+      description:
+        type: string
+      images:
+        type: array
+        items:
+          $ref: '#/definitions/Image'
+      ageFrom:
+        type: integer
+        example: 10
+      ageTo:
+        type: integer
+        example: 40
+  Event_Request:
+    type: object
+    properties:
+      name:
+        type: string
+      location:
+        $ref: '#/definitions/Location'
+      startDatetime:
+        type: string
+        format: date-time
+      endDatetime:
+        type: string
+        format: date-time
+      description:
+        type: string
+      images:
+        type: array
+        items:
+          type: string
+          format: uuid
+          example: 79a473d0-4d8d-11e8-b28c-0242ac110003
+      ageFrom:
+        type: integer
+        example: 10
+      ageTo:
+        type: integer
+        example: 40
+  Address:
+    type: object
+    properties:
+      name:
+        type: string
+      street:
+        type: string
+      city:
+        type: string
+      state:
+        type: string
+      zip:
+        type: string
+  Location:
+    type: object
+    properties:
+      address:
+        $ref: '#/definitions/Address'
+      name:
+        type: string
+      longitude:
+        type: number
+      latitude:
+        type: number
+  Image:
+    type: object
+    properties:
+      description:
+        type: string
+        example: An image.
+      id: 
+        type: integer
+        example: 1        
+      url:
+        type: string
+        example: /v1/image/79a473d0-4d8d-11e8-b28c-0242ac110003
+      uuid:
+        type: string
+        example: 79a473d0-4d8d-11e8-b28c-0242ac110003
+
+securityDefinitions:
+  basicAuth:
+    type: basic
